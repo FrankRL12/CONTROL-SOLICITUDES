@@ -1,0 +1,192 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Historial</h1>
+        <!-- Botón para abrir la modal -->
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% include 'includes/alertas.html' %}
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive mt-2">
+        <!-- Agregar el formulario de selección de rango de fechas -->
+        <form method="get" action="{% url 'historial' %}" class="mb-3">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="start_date">Fecha inicial:</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="end_date">Fecha final:</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary mt-4">Consultar</button>
+                </div>
+            </div>
+        </form>
+    
+
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead class="text-center">
+                <tr class="table-info">
+                    <th><i class="fas fa-fw fa-folder fa-sm"></i></th>
+                    <th>Usuario</th>
+                    <th>Nombre/completo</th>
+                    <th>Departamento</th>
+                    <th>Servicio/Solicitado</th>
+                    <th>Servicio/Realizado</th>
+                    <th>Observacion</th>
+                    <th>Tecnico</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Fecha/Final</th>
+                    <th>Hora/Final</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th colspan="3">Opciones</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                {% for historial in page_obj %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{ historial.usuario }}</td>
+                    <td>{{ historial.nombre_completo }}</td>
+                    <td>{{ historial.departamento }}</td>
+                    <td>{{ historial.servicio_solicitado }}</td>
+                    <td>{{ historial.servicio_realizado }}</td>
+                    <td>{{ historial.observacion }}</td>
+                    <td>{{ historial.tecnico }}</td>
+                    <td>{{ historial.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ historial.hora|time:"h:i A" }}</td>
+                    <td>{{ historial.fecha_final|date:"d/m/Y" }}</td>
+                    <td>{{ historial.hora_final|time:"h:i A" }}</td>
+                    <td>{{ historial.estado }}</td>
+                    <td>{{ historial.prioridad }}</td>
+                    <td><a type="button" href="{% url 'generar_pdf' historial.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-file-pdf fa-sm"></i>
+                    </a></td>
+                    <td><button class="btn btn-success btn-sm" data-toggle="modal" data-target="#opcionesHistorialModal{{ historial.id }}"><i class="fas fa-edit"></i></button></td>
+                    <td><button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#eliminarHistorialModal{{ historial.id }}"><i class="fas fa-trash"></i></button></td>
+                </tr>
+
+
+                <!--Modal para agregar Prioridad y El estado-->
+<div class="modal fade" id="opcionesHistorialModal{{ historial.id }}" tabindex="-1" role="dialog" aria-labelledby="exempleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Cambios de Historial</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'opciones_historial' historial.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="servicio_solicitado">Servicio Solicitado:</label>
+                        <input type="text" class="form-control" value="{{ historial.servicio_solicitado }}"  id="servicio_solicitado"  name="servicio_solicitado">
+                    </div>
+                    <div class="form-group">
+                        <label for="servicio_realizado">Servicio/Realizado:</label>
+                        <input type="text" class="form-control" value="{{ historial.servicio_realizado }}"  id="servicio_realizado"  name="servicio_realizado">
+                    </div>
+                    <div class="form-group">
+                        <label for="observacion">observacion:</label>
+                        <textarea class="form-control" id="observacion" name="observacion" rows="3">{{ historial.observacion }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="tecnico">Técnico:</label>
+                        <input type="text" class="form-control" value="{{ historial.tecnico }}" id="tecnico" name="tecnico">
+                        <p id="tecnico_error" class="text-danger"></p>
+                    </div>                    
+                    <div class="form-group">
+                        <label for="estado">estado:</label>
+                        <select class="form-control" name="estado" id="estado">
+                            <option value="En espera" {% if historial.estado == "En espera" %}selected{% endif %}>En espera</option>
+                            <option value="Aceptado" {% if historial.estado == "Aceptado" %}selected{% endif %}>Aceptado</option>
+                            <option value="En proceso" {% if historial.estado == "En proceso" %}selected{% endif %}>En proceso</option>
+                            <option value="Cancelado" {% if historial.estado == "Cancelado" %}selected{% endif %}>Cancelado</option>
+                            <option value="Finalizado" {% if historial.estado == "Finalizado" %}selected{% endif %}>Finalizado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="prioridad">Prioridad:</label>
+                        <select class="form-control" name="prioridad" id="prioridad">
+                            <option value="Baja" {% if historial.prioridad == "Baja" %}selected{% endif %}>Baja</option>
+                            <option value="Media" {% if historial.prioridad == "Media" %}selected{% endif %}>Media</option>
+                            <option value="Alta" {% if historial.prioridad == "Alta" %}selected{% endif %}>Alta</option>
+                        </select>
+                    </div>                    
+                    <button type="submit" class="btn btn-primary mt-3">Cambio de Historial</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal de confirmación de eliminación para cada diagnóstico -->
+<div class="modal fade" id="eliminarHistorialModal{{ historial.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Eliminar Este Historial</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar esta Historial?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <a href="{% url 'eliminar_historial' historial.id %}" class="btn btn-danger">Eliminar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+            </li>
+            {% endif %}
+            <li class="page-item active">
+                <a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a>
+            </li>
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+
+
+{% endblock content %}

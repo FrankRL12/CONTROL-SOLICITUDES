@@ -1,0 +1,42 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block content %}
+
+<!-- Begin Page Content -->
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Home</h1>
+    </div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <img src="{% static 'img/trabajando-con-laptop.png' %}" class="card-img-top" alt="Imagen de ejemplo">
+                <div class="card-body">
+                    {% include 'includes/alertas.html' %}
+                    <h5 class="card-title">Bienvenidos a Soporte ITSS...</h5>
+                    <div id="notification"></div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+
+    <script>
+        const notificationSocket = new WebSocket(
+            'ws://' + window.location.host + '/channel/notifications/'
+        );
+
+        notificationSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.getElementById('notification').innerHTML = data.notification;
+        };
+    </script>
+
+</div>
+
+{% endblock content %}

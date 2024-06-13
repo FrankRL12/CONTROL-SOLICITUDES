@@ -1,0 +1,149 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Reportes</h1>
+        <!-- Botón para abrir la modal -->
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {% include 'includes/alertas.html' %}
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive mt-2">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead class="text-center">
+                <tr class="table-info">
+                    <th><i class="fas fa-file-alt fa-sm"></i></th>
+                    <th>Usuario</th>
+                    <th>Nombre/Completo</th>
+                    <th>Departamento</th>
+                    <th>Servicio/Solicitado</th>
+                    <th>Servicio/Realizado</th>
+                    <th>Observacion</th>
+                    <th>Tecnico</th>
+                    <th>fecha</th>
+                    <th>hora</th>
+                    <th>Estado</th>
+                    <th>prioridad</th>
+                    <th colspan="3">Opciones</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                {% for reporte in page_obj %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ reporte.usuario }}</td>
+                    <td>{{ reporte.nombre_completo }}</td>
+                    <td>{{ reporte.departamento }}</td>
+                    <td>{{ reporte.servicio_solicitado }}</td>
+                    <td>{{ reporte.servicio_realizado }}</td>
+                    <td>{{ reporte.observacion }}</td>
+                    <td>{{ reporte.tecnico }}</td>
+                    <td>{{ reporte.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ reporte.hora|time:"h:i A" }}</td>
+                    <td>{{ reporte.estado }}</td>
+                    <td>{{ reporte.prioridad }}</td>
+                    <td><button class="btn btn-success btn-sm" data-toggle="modal" data-target="#opcionesReporteModal{{ reporte.id }}"><i class="fas fa-edit"></i></a></td>
+                    <td><a href="{% url 'mover_historial' reporte.id %}" class="btn btn-info btn-sm">
+                        <i class="fas fa-fw fa-folder fa-sm"></i>
+                    </a></td>
+                    <td><button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#eliminarReportedModal{{ reporte.id }}"><i class="fas fa-trash"></i></button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+       <!-- Pagination -->
+       <div class="d-flex justify-content-center">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1">&laquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+            </li>
+            {% endif %}
+            <li class="page-item active">
+                <a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a>
+            </li>
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+            </li>
+            {% endif %}
+        </ul>
+    </div>
+
+</div>
+{% for reporte in page_obj %}
+<div class="modal fade" id="opcionesReporteModal{{ reporte.id }}" tabindex="-1" role="dialog" aria-labelledby="exempleModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Agregar Estados del Reporte</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'opciones_reportes' reporte.id %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="estado">estado:</label>
+                        <select class="form-control" name="estado" id="estado">
+                            <option value="En espera" {% if reporte.estado == "En espera" %}selected{% endif %}>En espera</option>
+                            <option value="Aceptado" {% if reporte.estado == "Aceptado" %}selected{% endif %}>Aceptado</option>
+                            <option value="En proceso" {% if reporte.estado == "En proceso" %}selected{% endif %}>En proceso</option>
+                            <option value="Cancelado" {% if reporte.estado == "Cancelado" %}selected{% endif %}>Cancelado</option>
+                            <option value="Finalizado" {% if reporte.estado == "Finalizado" %}selected{% endif %}>Finalizado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="prioridad">Prioridad:</label>
+                        <input readonly=»readonly» type="text" class="form-control" value="{{ reporte.prioridad }}" id="prioridad" name="prioridad">
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Finalizaciones</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación de eliminación para cada diagnóstico -->
+<div class="modal fade" id="eliminarReportedModal{{ reporte.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Eliminar Este Reporte</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar este reporte?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <a href="{% url 'eliminar_reporte' reporte.id %}" class="btn btn-danger">Eliminar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endfor %}
+
+
+{% endblock content %}

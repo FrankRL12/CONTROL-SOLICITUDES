@@ -1,0 +1,7 @@
+.card img {
+    max-width: 50%;
+    height: auto;
+}
+.card-body {
+    text-align: center;
+}

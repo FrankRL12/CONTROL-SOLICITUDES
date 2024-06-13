@@ -1,0 +1,96 @@
+{% extends "views/base.html" %}
+{% load static %}
+
+
+{% block content %}
+
+<div class="container mt-3">
+    <div class="card">
+        <div class="card-body text-center">
+            <i class="fas fa-user-circle fa-5x mb-3"></i>
+            <h5 class="text-muted">Bienvenido a tu Historial {{ user.full_name }}!</h5>
+            {% include 'includes/alertas.html' %}
+        </div>
+    </div>
+</div>
+
+<div class="container mt-3">
+    <form method="get" action="{% url 'historial_cliente' %}" class="mb-3">
+        <div class="row">
+            <div class="col-md-4">
+                <label for="start_date">Fecha inicial:</label>
+                <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-4">
+                <label for="end_date">Fecha final:</label>
+                <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary mt-4">Consultar</button>
+            </div>
+        </div>
+    </form>
+
+    <h2>Historial</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead class="text-center">
+                <tr class="table-info">
+                    <th><i class="fas fa-fw fa-folder"></i></th> 
+                    <th>Servicio/Solicitado</th>
+                    <th>Servicio/Realizado</th>
+                    <th>Observacion</th>
+                    <th>Tecnico</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Fecha/Final</th>
+                    <th>Hora/Final</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody class="text-center">
+                {% for historial in page_obj %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{ historial.servicio_solicitado }}</td>
+                    <td>{{ historial.servicio_realizado }}</td>
+                    <td>{{ historial.observacion }}</td>
+                    <td>{{ historial.tecnico }}</td>
+                    <td>{{ historial.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ historial.hora|time:"h:i A" }}</td>
+                    <td>{{ historial.fecha_final|date:"d/m/Y" }}</td>
+                    <td>{{ historial.hora_final|time:"h:i A" }}</td>
+                    <td>{{ historial.estado }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<!-- Pagination -->
+<div class="d-flex justify-content-center">
+    <ul class="pagination">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page=1">&laquo;</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+        </li>
+        {% endif %}
+        <li class="page-item active">
+            <a class="page-link" href="?page={{ page_obj.number }}">{{ page_obj.number }}</a>
+        </li>
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+        </li>
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock content %}

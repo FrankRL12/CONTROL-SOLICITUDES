@@ -1,0 +1,178 @@
+{% extends "views/base.html" %}
+{% load static %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Acciones</h5>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#crearSolicitudModal"><i class="fas fa-plus-circle"></i></button>
+                <button type="button" class="btn btn-light" data-toggle="modal" data-target="#reportesModal"><i class="fas fa-chart-bar"></i></button>
+                <a href="{% url 'historial_cliente' %}" class="btn btn-danger"><i class="fas fa-fw fa-folder"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mt-3">
+    <div class="card">
+        <div class="card-body text-center">
+            <i class="fas fa-user-circle fa-5x mb-3"></i>
+            <h5 class="text-muted">Bienvenido {{ user.full_name }}!</h5>
+            {% include 'includes/alertas.html' %}
+        </div>
+    </div>
+</div>
+
+<div class="container mt-3">
+    <h2>Solicitudes Realizadas</h2>
+    <div class="table-responsive">
+        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <thead class="text-center">
+                <tr class="table-info">
+                    <th><i class="fas fa-tasks fa-sm"></i></th>
+                    <th>Detalle/Equipo</th>
+                    <th>Descripcion</th>
+                    <th>Solicitud</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Estado</th>
+                    <th colspan="1">Opciones</th>
+                </tr>
+            </thead>
+            {% if solicitudes %}
+            <tbody class="text-center">
+                {% for solicitud in solicitudes %}
+                <tr>
+                    <td>{{forloop.counter}}</td>
+                    <td>{{ solicitud.detalle_equipo}}</td>
+                    <td>{{ solicitud.descripcion }}</td>
+                    <td>{{ solicitud.mantenimiento }}</td>
+                    <td>{{ solicitud.fecha|date:"d/m/Y" }}</td>
+                    <td>{{ solicitud.hora|time:"h:i A"  }}</td>
+                    <td>{{ solicitud.estado }}</td>
+                    <td><button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#cancelarSolicitudModal{{ solicitud.id }}">Cancelar</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% endif %}
+        </table>
+    </div>
+</div>
+
+{% for solicitud in solicitudes %}
+<!-- Modal de confirmación de eliminación para cada diagnóstico -->
+<div class="modal fade" id="cancelarSolicitudModal{{ solicitud.id }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Cancelar Solicitud</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas cancelar esta solicitud?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+                <a href="{% url 'cancelar_solicitud' solicitud.id %}" class="btn btn-danger">Si</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+
+<!-- Modal para crear solicitud -->
+<div class="modal fade" id="crearSolicitudModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Crea tu Solicitud</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'crear_solicitud' %}" class="container">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="detalle_equipo">Detalle del Equipo:</label>
+                        <input type="text" class="form-control" id="detalle_equipo" name="detalle_equipo" autocomplete="off">
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion">Descripción:</label>
+                        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" autocomplete="off"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="mantenimiento">Mantenimiento</label>
+                        <select class="form-control" name="mantenimiento" id="mantenimiento" autocomplete="off">
+                            <option value="">Seleccione el mantenimiento</option>
+                            <option value="Soporte">Soporte</option>
+                            <option value="Hardware">Hardware</option>
+                            <option value="Software">Software</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3">Solicitar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de reportes -->
+<div class="modal fade" id="reportesModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Segimiento de Reportes</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                        <thead class="text-center">
+                            <tr class="table-info">
+                                <th><i class="fas fa-fw fa-chart-bar fa-sm"></i></th>
+                                <th>Servicio/Solicitado</th>
+                                <th>Servicio/Realizado</th>
+                                <th>Observación</th>
+                                <th>Técnico</th>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        {% if reportes %}
+                        <tbody class="text-center">
+                            {% for reporte in reportes %}
+                            <tr>
+                                <td>{{forloop.counter}}</td>
+                                <td>{{ reporte.servicio_solicitado }}</td>
+                                <td>{{ reporte.servicio_realizado }}</td>
+                                <td>{{ reporte.observacion }}</td>
+                                <td>{{ reporte.tecnico }}</td>
+                                <td>{{ reporte.fecha|date:"d/m/Y" }}</td>
+                                <td>{{ reporte.hora|time:"h:i A" }}</td>
+                                <td>{{ reporte.estado }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock  %}
